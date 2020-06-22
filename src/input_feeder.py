@@ -9,6 +9,7 @@ Sample usage:
 '''
 import cv2
 from numpy import ndarray
+import numpy as np
 
 class InputFeeder:
     def __init__(self, input_type, input_file=None):
@@ -36,7 +37,9 @@ class InputFeeder:
         '''
         while True:
             for _ in range(10):
-                _, frame=self.cap.read()
+                ret, frame=self.cap.read()
+                if not ret:
+                    break
             yield frame
 
 
