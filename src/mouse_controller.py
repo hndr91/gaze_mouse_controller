@@ -16,6 +16,7 @@ class MouseController:
 
         self.precision=precision_dict[precision]
         self.speed=speed_dict[speed]
+        pyautogui.FAILSAFE = False
 
     def move(self, x, y):
         pyautogui.moveRel(x*self.precision, -1*y*self.precision, duration=self.speed)

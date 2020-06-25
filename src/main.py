@@ -5,7 +5,11 @@ import cv2
 import numpy as np
 import constant
 from input_feeder import InputFeeder
-from model_face import ModelFace
+from face_detection import FaceDetection
+from head_pose_estimation import HeadPoseEstimation
+from facial_landmark_detection import FacialLandmarkDetection
+from gaze_estimation import GazeEstimation
+from mouse_controller import MouseController
 
 def build_argparser():
     """
@@ -31,6 +35,17 @@ def build_argparser():
     
     return parser
 
+def eyes_crop(image, landmark_x, landmark_y, crop_lenght=30):
+    x = landmark_x - crop_lenght
+    y = landmark_y - crop_lenght
+    x2 = x + (2*crop_lenght)
+    y2 = y + (2*crop_lenght)
+
+    coords = [(x,y),(x2,y2)]
+    cropped_eye = image[y:y2, x:x2].copy()
+
+    return coords, cropped_eye
+
 
 def infer_on_stream(args):
     # Get Input
@@ -38,17 +53,50 @@ def infer_on_stream(args):
     input_feeder.load_data()
 
     # Load face detection model
-    model_face = ModelFace(model_name=constant.FACE16, device=args.device, extensions=constant.CPU_EXTENSION)
-    model_face.load_model()
+    face = FaceDetection(model_name=constant.FACE16, device=args.device, extensions=constant.CPU_EXTENSION)
+    face.load_model()
+
+    # Load head pose model
+    head = HeadPoseEstimation(model_name=constant.HEAD16, device=args.device, extensions=constant.CPU_EXTENSION)
+    head.load_model()
+
+    # Load facial landmark model
+    landmark = FacialLandmarkDetection(model_name=constant.LAND32, device=args.device, extensions=constant.CPU_EXTENSION)
+    landmark.load_model()
+
+    # Load gaze estimation model
+    gaze = GazeEstimation(model_name=constant.GAZE32, device=args.device, extensions=constant.CPU_EXTENSION)
+    gaze.load_model()
+
+    # Initalize mouse controller
+    mouse = MouseController('high', 'fast')
 
     for frame in input_feeder.next_batch():
         # Break if number of next frame less then number of batch
         if frame is None:
             break
 
-        _, output_frame = model_face.predict(frame)
+        output_frame, cropped_face, box_coord = face.predict(frame)
+        head_pose = head.predict(cropped_face)
+        head_pose = np.array(head_pose)
+        lr_eyes = landmark.predict(cropped_face)
+
+        eyes = []
+
+        for coord in lr_eyes:
+            x = int(coord[0] + box_coord[0])
+            y = int(coord[1] + box_coord[1])
+            cv2.circle(output_frame, (x, y), 5, (255,0,0), -1)
+
+            eye_box, cropped_eye = eyes_crop(output_frame, x, y, 40)
+            cv2.rectangle(output_frame, eye_box[0], eye_box[1], (255,0,0), 1)
+            eyes.append(cropped_eye)
+        
+        gaze_coords = gaze.predict(eyes[0], eyes[1], head_pose)
+        mouse.move(gaze_coords[0], gaze_coords[1])
 
         cv2.imshow('Capture', output_frame)
+        
         if cv2.waitKey(30) & 0xFF == ord('q'):
             break
 

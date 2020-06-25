@@ -3,7 +3,7 @@ import sys
 import cv2
 from openvino.inference_engine import IECore, IENetwork
 
-class ModelFace:
+class HeadPoseEstimation:
     '''
     Class for the Face Detection Model.
     '''
@@ -31,8 +31,11 @@ class ModelFace:
 
         self.input_name = next(iter(self.network.inputs))
         self.input_shape = self.network.inputs[self.input_name].shape
-        self.output_name = next(iter(self.network.outputs))
-        self.output_shape = self.network.outputs[self.output_name].shape
+        self.output_names = iter(self.network.outputs)
+        self.angle_p_fc = next(self.output_names)
+        self.angle_r_fc = next(self.output_names)
+        self.angle_y_fc = next(self.output_names)
+        # self.output_shape = self.network.outputs[self.output_name].shape
 
     def load_model(self):
         '''
@@ -63,17 +66,17 @@ class ModelFace:
         status = infer.wait()
 
         if status == 0:
-            outputs = infer.outputs[self.output_name]
-            coords = self.preprocess_output(outputs)
-            output_frame = self.draw_box(coords, image)
+            angle_p_fc = infer.outputs[self.angle_p_fc][0][0]
+            angle_r_fc = infer.outputs[self.angle_r_fc][0][0]
+            angle_y_fc = infer.outputs[self.angle_y_fc][0][0]
 
 
-        return coords, output_frame
+        return [[angle_y_fc, angle_p_fc, angle_r_fc]]
 
     def check_model(self):
 
         raise NotImplementedError
-
+ 
     def preprocess_input(self, image):
         n,c,h,w = self.input_shape
         prep_image = image
@@ -83,24 +86,24 @@ class ModelFace:
 
         return prep_image
 
-    def preprocess_output(self, outputs):
-        res = outputs[0][0]
+    # def preprocess_output(self, outputs):
+    #     res = outputs[0][0]
 
-        preds = [pred for pred in res if pred[1] == 1 and pred[2] > 0.5]
+    #     preds = [pred for pred in res if pred[1] == 1 and pred[2] > 0.5]
 
-        coords = [[pred[3], pred[4], pred[5], pred[6]] for pred in preds]
+    #     coords = [[pred[3], pred[4], pred[5], pred[6]] for pred in preds]
 
-        # This should be return cropped face
-        return coords
+    #     # This should be return cropped face
+    #     return coords
 
-    def draw_box(self, coords, image):
-        h, w, _ = image.shape
-        for coord in coords:
-            x = int(coord[0] * w)
-            y = int(coord[1] * h)
-            x2 = int(coord[2] * w)
-            y2 = int(coord[3] * h)
+    # def draw_box(self, image, p, r ,y):
+    #     h, w, _ = image.shape
+    #     for coord in coords:
+    #         x = int(coord[0] * w)
+    #         y = int(coord[1] * h)
+    #         x2 = int(coord[2] * w)
+    #         y2 = int(coord[3] * h)
 
-            cv2.rectangle(image, (x,y), (x2, y2), (255,0,0), 2)
+    #         cv2.rectangle(image, (x,y), (x2, y2), (255,0,0), 2)
         
-        return image
+    #     return image
