@@ -5,11 +5,11 @@ from openvino.inference_engine import IECore, IENetwork
 
 class GazeEstimation:
     '''
-    Class for the Face Detection Model.
+    Class for the Gaze Estimation Model.
     '''
     def __init__(self, model_name, device='CPU', extensions=None):
         '''
-        TODO: Use this to set your instance variables.
+        Initiate class variables
         '''
         path = os.getcwd()
         root_path = os.path.abspath(os.path.join(path, os.pardir))
@@ -38,9 +38,7 @@ class GazeEstimation:
 
     def load_model(self):
         '''
-        TODO: You will need to complete this method.
-        This method is for loading the model to the device specified by the user.
-        If your model requires any Plugins, this is where you can load them.
+        Load gaze estimation model to the network
         '''
         try:
             self.exec_net = self.core.load_network(self.network, self.device)
@@ -48,9 +46,15 @@ class GazeEstimation:
             print("Cannot load the model. Error : ", e)
 
     def predict(self, l_eye, r_eye, head_pose):
-        '''
-        TODO: You will need to complete this method.
-        This method is meant for running predictions on the input image.
+        '''Estimate gaze coordinates based on catesian coordinates.
+
+        Args:
+            l_eye: The coordinates of left eye landmark
+            r_eye: The coordinates of right eye landmark
+            head_pose: array of pitch, yaw, rotation value from head pose estimation model
+        
+        Returns:
+            Eyes gaze coordinates
         '''
         prep_l_eye = self.preprocess_input(l_eye)
         prep_r_eye = self.preprocess_input(r_eye)
@@ -71,9 +75,6 @@ class GazeEstimation:
 
         if status == 0:
             outputs = infer.outputs[self.output_name]
-            # coords = self.preprocess_output(outputs)
-            # output_frame, cropped_face, box_coord = self.draw_box(coords, image)
-
 
         return outputs[0]
 
@@ -82,6 +83,14 @@ class GazeEstimation:
         raise NotImplementedError
 
     def preprocess_input(self, image):
+        '''Input image preprocessing.
+
+        Args:
+            image: original image
+        
+        Returns:
+            preprocessed image based on model input tensor
+        '''
         n,c,h,w = self.input_shape
         prep_image = image
         prep_image = cv2.resize(prep_image, (w,h))

@@ -9,7 +9,7 @@ class FaceDetection:
     '''
     def __init__(self, model_name, device='CPU', extensions=None):
         '''
-        TODO: Use this to set your instance variables.
+        Initiate class variables
         '''
         path = os.getcwd()
         root_path = os.path.abspath(os.path.join(path, os.pardir))
@@ -36,9 +36,7 @@ class FaceDetection:
 
     def load_model(self):
         '''
-        TODO: You will need to complete this method.
-        This method is for loading the model to the device specified by the user.
-        If your model requires any Plugins, this is where you can load them.
+        Load model to the network
         '''
         try:
             self.exec_net = self.core.load_network(self.network, self.device)
@@ -46,9 +44,15 @@ class FaceDetection:
             print("Cannot load the model. Error : ", e)
 
     def predict(self, image):
-        '''
-        TODO: You will need to complete this method.
-        This method is meant for running predictions on the input image.
+        '''Detect face
+
+        Args:
+            image: original image
+        
+        Returns:
+            Output frame with bounding box
+            Cropped face image
+            Bounding box coordinates
         '''
         prep_image = self.preprocess_input(image)
         input_name = self.input_name
@@ -75,6 +79,14 @@ class FaceDetection:
         raise NotImplementedError
 
     def preprocess_input(self, image):
+        '''Input image preprocessing.
+
+        Args:
+            image: original image
+        
+        Returns:
+            preprocessed image based on model input tensor
+        '''
         n,c,h,w = self.input_shape
         prep_image = image
         prep_image = cv2.resize(prep_image, (w,h))
@@ -84,6 +96,14 @@ class FaceDetection:
         return prep_image
 
     def preprocess_output(self, outputs):
+        '''Get face bounding box coordinates only
+
+        Args:
+            outputs: face detection model output
+        
+        Returns:
+            coords: face bounding box coordinates
+        '''
         res = outputs[0][0]
 
         preds = [pred for pred in res if pred[1] == 1 and pred[2] > 0.5]
@@ -93,6 +113,17 @@ class FaceDetection:
         return coords
 
     def draw_box(self, coords, image):
+        '''Draw bounding box on detected face
+
+        Args:
+            coords: face coordinates
+            image: input image
+        
+        Returns:
+            image: original image with face bounding box
+            cropped_face: cropped face region image
+            box_coord: face bounding box coordinates
+        '''
         h, w, _ = image.shape
         cropped_face = None
         box_coord = []

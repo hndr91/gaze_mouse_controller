@@ -5,11 +5,11 @@ from openvino.inference_engine import IECore, IENetwork
 
 class FacialLandmarkDetection:
     '''
-    Class for the Face Detection Model.
+    Class for the Facial landmark Detection Model.
     '''
     def __init__(self, model_name, device='CPU', extensions=None):
         '''
-        TODO: Use this to set your instance variables.
+        Initiate class variables
         '''
         path = os.getcwd()
         root_path = os.path.abspath(os.path.join(path, os.pardir))
@@ -36,9 +36,7 @@ class FacialLandmarkDetection:
 
     def load_model(self):
         '''
-        TODO: You will need to complete this method.
-        This method is for loading the model to the device specified by the user.
-        If your model requires any Plugins, this is where you can load them.
+        Load model to the network
         '''
         try:
             self.exec_net = self.core.load_network(self.network, self.device)
@@ -46,9 +44,13 @@ class FacialLandmarkDetection:
             print("Cannot load the model. Error : ", e)
 
     def predict(self, image):
-        '''
-        TODO: You will need to complete this method.
-        This method is meant for running predictions on the input image.
+        '''Estimate eyes landmark based on face image
+
+        Args:
+            image: face image
+        
+        Returns:
+            Array of eyes landmark coordintes based on catersian coordinates
         '''
         prep_image = self.preprocess_input(image)
         input_name = self.input_name
@@ -67,7 +69,6 @@ class FacialLandmarkDetection:
             coords = self.preprocess_output(outputs)
             scaled_coords = self.scaled_coords(coords, image)
 
-
         return scaled_coords
 
     def check_model(self):
@@ -75,6 +76,14 @@ class FacialLandmarkDetection:
         raise NotImplementedError
 
     def preprocess_input(self, image):
+        '''Input image preprocessing.
+
+        Args:
+            image: original image
+        
+        Returns:
+            preprocessed image based on model input tensor
+        '''
         n,c,h,w = self.input_shape
         prep_image = image
         prep_image = cv2.resize(prep_image, (w,h))
@@ -84,6 +93,14 @@ class FacialLandmarkDetection:
         return prep_image
 
     def preprocess_output(self, outputs):
+        '''Get left eye and right eye landmark coordinates only.
+
+        Args:
+            outputs: facial landmark detection model output
+        
+        Returns:
+            Array of eyes coordinates based on catertesian coordinates
+        '''
         res = outputs.ravel()
         l_eye = [res[0], res[1]]
         r_eye = [res[2], res[3]]
@@ -91,6 +108,15 @@ class FacialLandmarkDetection:
         return [l_eye, r_eye]
 
     def scaled_coords(self, coords, image):
+        '''Translate coordinate to original image size
+
+        Args:
+            coords: array of coorditates of left and right eyes landmark
+            image: original face image
+        
+        Returns:
+            Array of eyes translated coordinates
+        '''
         h, w, _ = image.shape
         scaled = []
         for coord in coords:

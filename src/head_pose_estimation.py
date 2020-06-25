@@ -5,11 +5,11 @@ from openvino.inference_engine import IECore, IENetwork
 
 class HeadPoseEstimation:
     '''
-    Class for the Face Detection Model.
+    Class for the Head Pose Estimation Model.
     '''
     def __init__(self, model_name, device='CPU', extensions=None):
         '''
-        TODO: Use this to set your instance variables.
+        Initiate class variables
         '''
         path = os.getcwd()
         root_path = os.path.abspath(os.path.join(path, os.pardir))
@@ -39,9 +39,7 @@ class HeadPoseEstimation:
 
     def load_model(self):
         '''
-        TODO: You will need to complete this method.
-        This method is for loading the model to the device specified by the user.
-        If your model requires any Plugins, this is where you can load them.
+        Load model to the network
         '''
         try:
             self.exec_net = self.core.load_network(self.network, self.device)
@@ -49,9 +47,13 @@ class HeadPoseEstimation:
             print("Cannot load the model. Error : ", e)
 
     def predict(self, image):
-        '''
-        TODO: You will need to complete this method.
-        This method is meant for running predictions on the input image.
+        '''Estimate head pose based on pitch, rotation, and yaw
+        
+        Args:
+            image: face image
+        
+        Returns:
+            Array of yaw, pitch, rotation. Size (1x3)
         '''
         prep_image = self.preprocess_input(image)
         input_name = self.input_name
@@ -78,6 +80,14 @@ class HeadPoseEstimation:
         raise NotImplementedError
  
     def preprocess_input(self, image):
+        '''Input image preprocessing.
+
+        Args:
+            image: original image
+        
+        Returns:
+            preprocessed image based on model input tensor
+        '''
         n,c,h,w = self.input_shape
         prep_image = image
         prep_image = cv2.resize(prep_image, (w,h))
@@ -85,25 +95,3 @@ class HeadPoseEstimation:
         prep_image = prep_image.reshape(n,c,h,w)
 
         return prep_image
-
-    # def preprocess_output(self, outputs):
-    #     res = outputs[0][0]
-
-    #     preds = [pred for pred in res if pred[1] == 1 and pred[2] > 0.5]
-
-    #     coords = [[pred[3], pred[4], pred[5], pred[6]] for pred in preds]
-
-    #     # This should be return cropped face
-    #     return coords
-
-    # def draw_box(self, image, p, r ,y):
-    #     h, w, _ = image.shape
-    #     for coord in coords:
-    #         x = int(coord[0] * w)
-    #         y = int(coord[1] * h)
-    #         x2 = int(coord[2] * w)
-    #         y2 = int(coord[3] * h)
-
-    #         cv2.rectangle(image, (x,y), (x2, y2), (255,0,0), 2)
-        
-    #     return image
