@@ -32,6 +32,8 @@ def build_argparser():
                         help="MKLDNN (CPU)-targeted custom layers."
                              "Absolute path to a shared library with the"
                              "kernels impl. This is required for OpenVino 2019 and oldest")
+    parser.add_argument("-p", "--precision", required=True, type=str, default="FP32",
+                        help="Select model precision. It can be FP32, FP16, or INT8")
     
     return parser
 
@@ -60,26 +62,55 @@ def eyes_crop(image, landmark_x, landmark_y, crop_lenght=40):
 
     return coords, cropped_eye
 
+def select_precision(precision="FP32"):
+    path = os.getcwd()
+    root_path = os.path.abspath(os.path.join(path, os.pardir))
+
+
+    if "FP32" in precision:
+        face = root_path + constant.FACE32
+        head = root_path + constant.HEAD32
+        landmark = root_path + constant.LAND32
+        gaze = root_path + constant.GAZE32
+
+        return (face, head, landmark, gaze)
+    else:
+        face = root_path + constant.FACE16
+        head = root_path + constant.HEAD16
+        landmark = root_path + constant.LAND16
+        gaze = root_path + constant.GAZE16
+
+        return (face, head, landmark, gaze)
+
 
 def infer_on_stream(args):
+    models = None
+    # Check selected precision model
+    if "FP32" in args.precision:
+        models = select_precision(args.precision)
+
+    if "FP16" in args.precision:
+        models = select_precision(args.precision)
+
+
     # Get Input
     input_feeder = InputFeeder(args.input_type, args.input_file)
     input_feeder.load_data()
 
     # Load face detection model
-    face = FaceDetection(model_name=constant.FACE16, device=args.device, extensions=args.cpu_extension)
+    face = FaceDetection(model_name=models[0], device=args.device, extensions=args.cpu_extension)
     face.load_model()
 
     # Load head pose model
-    head = HeadPoseEstimation(model_name=constant.HEAD16, device=args.device, extensions=args.cpu_extension)
+    head = HeadPoseEstimation(model_name=models[1], device=args.device, extensions=args.cpu_extension)
     head.load_model()
 
     # Load facial landmark model
-    landmark = FacialLandmarkDetection(model_name=constant.LAND32, device=args.device, extensions=args.cpu_extension)
+    landmark = FacialLandmarkDetection(model_name=models[2], device=args.device, extensions=args.cpu_extension)
     landmark.load_model()
 
     # Load gaze estimation model
-    gaze = GazeEstimation(model_name=constant.GAZE32, device=args.device, extensions=args.cpu_extension)
+    gaze = GazeEstimation(model_name=models[3], device=args.device, extensions=args.cpu_extension)
     gaze.load_model()
 
     # Initalize mouse controller
