@@ -25,7 +25,10 @@ class FaceDetection:
         self.core = IECore()
 
         # For OpenVino 2019 and older only
-        if extensions and "CPU" in device:
+        if extensions and "HETERO" in device and "CPU" in device:
+            self.core.add_extension(extensions, "CPU")
+
+        if extensions and "CPU" in device and not "HETERO" in device:
             self.core.add_extension(extensions, self.device)
 
 

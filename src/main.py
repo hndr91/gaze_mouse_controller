@@ -62,7 +62,23 @@ def eyes_crop(image, landmark_x, landmark_y, crop_lenght=40):
 
     return coords, cropped_eye
 
-def select_precision(precision="FP32"):
+def select_precision(args, precision="FP32"):
+    '''Select model precision
+
+    This function let users to choose the model precision.
+    Since face detection only support FP32-INT1 precision,
+    it will used in all precision configuration. Therefore,
+    HETERO with CPU failover should be use as the devices,
+    if we want to utilized other devices except CPU.
+
+    HETERO configuration also needed if you want to use 
+    INT8 precision. Because, INT8 only supported in specific
+    layers and device (ex: CPU)
+
+    Example:
+        HETERO:GPU,CPU
+        HETERO:MYRIAD,CPU
+    '''
     path = os.getcwd()
     root_path = os.path.abspath(os.path.join(path, os.pardir))
 
@@ -74,13 +90,22 @@ def select_precision(precision="FP32"):
         gaze = root_path + constant.GAZE32
 
         return (face, head, landmark, gaze)
-    else:
+    elif "FP16" in precision:
         face = root_path + constant.FACE16
         head = root_path + constant.HEAD16
         landmark = root_path + constant.LAND16
         gaze = root_path + constant.GAZE16
 
         return (face, head, landmark, gaze)
+    elif "INT8" in precision:
+        face = root_path + constant.FACE8
+        head = root_path + constant.HEAD8
+        landmark = root_path + constant.LAND8
+        gaze = root_path + constant.GAZE8
+
+        return (face, head, landmark, gaze)
+    else:
+        raise Exception("{} is unrecognized precission".format(args.precision))
 
 
 def infer_on_stream(args):
@@ -90,6 +115,9 @@ def infer_on_stream(args):
         models = select_precision(args.precision)
 
     if "FP16" in args.precision:
+        models = select_precision(args.precision)
+
+    if "INT8" in args.precision:
         models = select_precision(args.precision)
 
 
