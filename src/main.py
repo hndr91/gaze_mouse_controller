@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 import cv2
 import numpy as np
 import constant
+import time
 from input_feeder import InputFeeder
 from face_detection import FaceDetection
 from head_pose_estimation import HeadPoseEstimation
@@ -45,7 +46,7 @@ def eyes_crop(image, landmark_x, landmark_y, crop_lenght=40):
         image: face image from face detection model
         landmark_x: x point value from facial landmark detection model
         landmark_y: y point value from facial landmark detection model
-        crop_length: diagonal value from center poin (default=30)
+        crop_length: diagonal value from center poin (default=40)
 
     Returns:
         coordinates of croped eye image, croped eye image
@@ -67,38 +68,64 @@ def infer_on_stream(args):
     input_feeder.load_data()
 
     # Load face detection model
+    start_load_face = time.time()
     face = FaceDetection(model_name=constant.FACE16, device=args.device, extensions=args.cpu_extension)
     face.load_model()
+    total_load_face = time.time() - start_load_face
 
     # Load head pose model
+    start_load_head = time.time()
     head = HeadPoseEstimation(model_name=constant.HEAD16, device=args.device, extensions=args.cpu_extension)
     head.load_model()
+    total_load_head = time.time() - start_load_head
 
     # Load facial landmark model
+    start_load_landmark = time.time()
     landmark = FacialLandmarkDetection(model_name=constant.LAND32, device=args.device, extensions=args.cpu_extension)
     landmark.load_model()
+    total_load_landmark = time.time() - start_load_landmark
 
     # Load gaze estimation model
+    start_load_gaze = time.time()
     gaze = GazeEstimation(model_name=constant.GAZE32, device=args.device, extensions=args.cpu_extension)
     gaze.load_model()
+    total_load_gaze = time.time() - start_load_gaze
 
     # Initalize mouse controller
     mouse = MouseController('high', 'fast')
+
+    counter = 0
+    start_infer_time = time.time()
+
+    avg_infer_face = []
+    avg_infer_head = []
+    avg_infer_landmark = []
+    avg_infer_gaze = []
 
     for frame in input_feeder.next_batch():
         # Break if number of next frame less then number of batch
         if frame is None:
             break
+        counter+=1
 
         # Estimate face region
+        infer_face = time.time()
         output_frame, cropped_face, box_coord = face.predict(frame)
+        total_infer_face = time.time() - infer_face
+        avg_infer_face.append(total_infer_face)
         
         # Estimate head pose position
+        infer_head = time.time()
         head_pose = head.predict(cropped_face)
         head_pose = np.array(head_pose)
+        total_infer_head = time.time() - infer_head
+        avg_infer_head.append(total_infer_head)
         
         # Estimate eyes landmark coordinates
+        infer_landmark = time.time()
         lr_eyes = landmark.predict(cropped_face)
+        total_infer_landmark = time.time() - infer_landmark
+        avg_infer_landmark.append(total_infer_landmark)
 
         eyes = []
 
@@ -113,15 +140,46 @@ def infer_on_stream(args):
             eyes.append(cropped_eye)
         
         # Estimate gaze direction
+        infer_gaze = time.time()
         gaze_coords = gaze.predict(eyes[0], eyes[1], head_pose)
+        total_infer_gaze = time.time() - infer_gaze
+        avg_infer_gaze.append(total_infer_gaze)
+        
 
         # Move the mouse cursor
-        mouse.move(gaze_coords[0], gaze_coords[1])
+        # mouse.move(gaze_coords[0], gaze_coords[1])
 
         cv2.imshow('Capture', output_frame)
         
         if cv2.waitKey(30) & 0xFF == ord('q'):
             break
+
+    avg_infer_face = np.mean(avg_infer_face)
+    avg_infer_head = np.mean(avg_infer_head)
+    avg_infer_landmark = np.mean(avg_infer_landmark)
+    avg_infer_gaze = np.mean(avg_infer_gaze)
+    total_infer_time = time.time() - start_infer_time
+    fps=counter/total_infer_time
+
+    path = os.getcwd()
+    root_path = os.path.abspath(os.path.join(path, os.pardir))
+    output_path = root_path + '/performance-result/performance-nomove.txt'
+
+    with open(output_path, 'w') as f:
+        f.write('=== Load Models ==='+'\n')
+        f.write(str(total_load_face)+'\n')
+        f.write(str(total_load_head)+'\n')
+        f.write(str(total_load_landmark)+'\n')
+        f.write(str(total_load_gaze)+'\n')
+        f.write('=== Inference ==='+'\n')
+        f.write(str(avg_infer_face)+'\n')
+        f.write(str(avg_infer_head)+'\n')
+        f.write(str(avg_infer_landmark)+'\n')
+        f.write(str(avg_infer_gaze)+'\n')
+        f.write('=== Overall ==='+'\n')
+        f.write(str(total_infer_time)+'\n')
+        f.write(str(fps)+'\n')
+
 
     input_feeder.close()
     cv2.destroyAllWindows()
