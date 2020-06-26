@@ -11,10 +11,10 @@ class FacialLandmarkDetection:
         '''
         Initiate class variables
         '''
-        path = os.getcwd()
-        root_path = os.path.abspath(os.path.join(path, os.pardir))
-        self.model_xml = root_path + model_name + ".xml"
-        self.model_bin = root_path + model_name + ".bin"
+        # path = os.getcwd()
+        # root_path = os.path.abspath(os.path.join(path, os.pardir))
+        self.model_xml = model_name + ".xml"
+        self.model_bin = model_name + ".bin"
         self.device = device
 
         try:

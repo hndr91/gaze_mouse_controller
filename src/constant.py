@@ -1,5 +1,5 @@
 # Path for FP32 precision
-FACE32 = '/models/face-detection-adas-binary-0001/face-detection-adas-binary-0001'
+FACE32 = '/models/face-detection-adas-binary-0001/FP32/face-detection-adas-binary-0001'
 GAZE32 = '/models/gaze-estimation-adas-0002/FP32/gaze-estimation-adas-0002'
 HEAD32 = '/models/head-pose-estimation-adas-0001/FP32/head-pose-estimation-adas-0001'
 LAND32 = '/models/landmarks-regression-retail-0009/FP32/landmarks-regression-retail-0009'
