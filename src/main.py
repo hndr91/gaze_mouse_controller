@@ -127,21 +127,25 @@ def infer_on_stream(args):
     input_feeder.load_data()
 
     # Load face detection model
+    start_load_face = time.time()
     face = FaceDetection(model_name=models[0], device=args.device, extensions=args.cpu_extension)
     face.load_model()
     total_load_face = time.time() - start_load_face
 
     # Load head pose model
+    start_load_head = time.time()
     head = HeadPoseEstimation(model_name=models[1], device=args.device, extensions=args.cpu_extension)
     head.load_model()
     total_load_head = time.time() - start_load_head
 
     # Load facial landmark model
+    start_load_landmark = time.time()
     landmark = FacialLandmarkDetection(model_name=models[2], device=args.device, extensions=args.cpu_extension)
     landmark.load_model()
     total_load_landmark = time.time() - start_load_landmark
 
     # Load gaze estimation model
+    start_load_gaze = time.time()
     gaze = GazeEstimation(model_name=models[3], device=args.device, extensions=args.cpu_extension)
     gaze.load_model()
     total_load_gaze = time.time() - start_load_gaze
@@ -218,7 +222,7 @@ def infer_on_stream(args):
 
     path = os.getcwd()
     root_path = os.path.abspath(os.path.join(path, os.pardir))
-    output_path = root_path + '/performance-result/performance-nomove.txt'
+    output_path = root_path + '/performance-result/performance-int8.txt'
 
     with open(output_path, 'w') as f:
         f.write('=== Load Models ==='+'\n')
