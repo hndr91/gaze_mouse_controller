@@ -35,6 +35,7 @@ def build_argparser():
                              "kernels impl. This is required for OpenVino 2019 and oldest")
     parser.add_argument("-p", "--precision", required=True, type=str, default="FP32",
                         help="Select model precision. It can be FP32, FP16, or INT8")
+    parser.add_argument("-o", "--output", required=True, type=str, help="specified output filename")
     
     return parser
 
@@ -222,7 +223,7 @@ def infer_on_stream(args):
 
     path = os.getcwd()
     root_path = os.path.abspath(os.path.join(path, os.pardir))
-    output_path = root_path + '/performance-result/performance-int8.txt'
+    output_path = root_path + '/performance-result/' + args.output
 
     with open(output_path, 'w') as f:
         f.write('=== Load Models ==='+'\n')
