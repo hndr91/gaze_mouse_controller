@@ -35,7 +35,13 @@ def build_argparser():
                              "kernels impl. This is required for OpenVino 2019 and oldest")
     parser.add_argument("-p", "--precision", required=True, type=str, default="FP32",
                         help="Select model precision. It can be FP32, FP16, or INT8")
+<<<<<<< HEAD
     parser.add_argument("-o", "--output", required=True, type=str, help="specified output filename")
+=======
+    parser.add_argument("-v", "--visualize", required=False, type=str, default="True",
+                        help="Visualize or show the output frames." 
+                             "Set to 'False' to turn it off or 'True to turn it on. Default='True'")
+>>>>>>> master
     
     return parser
 
@@ -207,12 +213,19 @@ def infer_on_stream(args):
         
 
         # Move the mouse cursor
+<<<<<<< HEAD
         # mouse.move(gaze_coords[0], gaze_coords[1])
 
         cv2.imshow('Capture', output_frame)
+=======
+        mouse.move(gaze_coords[0], gaze_coords[1])
+>>>>>>> master
         
-        if cv2.waitKey(30) & 0xFF == ord('q'):
-            break
+        if "True" in args.visualize:
+            cv2.imshow('Capture', output_frame)
+        
+            if cv2.waitKey(30) & 0xFF == ord('q'):
+                break
 
     avg_infer_face = np.mean(avg_infer_face)
     avg_infer_head = np.mean(avg_infer_head)
@@ -242,7 +255,8 @@ def infer_on_stream(args):
 
 
     input_feeder.close()
-    cv2.destroyAllWindows()
+    if "True" in args.visualize:
+        cv2.destroyAllWindows()
 
 def main():
     args = build_argparser().parse_args()
