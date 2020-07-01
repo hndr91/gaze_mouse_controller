@@ -1,6 +1,8 @@
 import os
 import sys
 import cv2
+import logging
+logging.basicConfig(level=logging.INFO)
 from openvino.inference_engine import IECore, IENetwork
 
 class FacialLandmarkDetection:
@@ -11,8 +13,6 @@ class FacialLandmarkDetection:
         '''
         Initiate class variables
         '''
-        # path = os.getcwd()
-        # root_path = os.path.abspath(os.path.join(path, os.pardir))
         self.model_xml = model_name + ".xml"
         self.model_bin = model_name + ".bin"
         self.device = device
@@ -20,7 +20,7 @@ class FacialLandmarkDetection:
         try:
             self.network = IENetwork(self.model_xml, self.model_bin)
         except Exception as e:
-            print("Cannot initialize the network. Please enter correct model path. Error : ", e)
+            logging.info("Cannot initialize the network. Please enter correct model path. Error : %s", e)
 
         self.core = IECore()
 
@@ -44,7 +44,7 @@ class FacialLandmarkDetection:
         try:
             self.exec_net = self.core.load_network(self.network, self.device)
         except Exception as e:
-            print("Cannot load the model. Error : ", e)
+            logging.info("Cannot load the model. Error : %s", e)
 
     def predict(self, image):
         '''Estimate eyes landmark based on face image
@@ -63,7 +63,7 @@ class FacialLandmarkDetection:
         try:
             infer = self.exec_net.start_async(request_id=0, inputs=input_dict)
         except Exception as e:
-            print("Cannot do inference. Error : ", e)
+            logging.info("Cannot do inference. Error : %s", e)
 
         status = infer.wait()
 

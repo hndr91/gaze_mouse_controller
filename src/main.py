@@ -34,6 +34,9 @@ def build_argparser():
                              "kernels impl. This is required for OpenVino 2019 and oldest")
     parser.add_argument("-p", "--precision", required=True, type=str, default="FP32",
                         help="Select model precision. It can be FP32, FP16, or INT8")
+    parser.add_argument("-v", "--visualize", required=False, type=str, default="True",
+                        help="Visualize or show the output frames." 
+                             "Set to 'False' to turn it off or 'True to turn it on. Default='True'")
     
     return parser
 
@@ -47,7 +50,7 @@ def eyes_crop(image, landmark_x, landmark_y, crop_lenght=40):
         image: face image from face detection model
         landmark_x: x point value from facial landmark detection model
         landmark_y: y point value from facial landmark detection model
-        crop_length: diagonal value from center poin (default=30)
+        crop_length: diagonal value from center poin (default=40)
 
     Returns:
         coordinates of croped eye image, croped eye image
@@ -176,14 +179,16 @@ def infer_on_stream(args):
 
         # Move the mouse cursor
         mouse.move(gaze_coords[0], gaze_coords[1])
-
-        cv2.imshow('Capture', output_frame)
         
-        if cv2.waitKey(30) & 0xFF == ord('q'):
-            break
+        if "True" in args.visualize:
+            cv2.imshow('Capture', output_frame)
+        
+            if cv2.waitKey(30) & 0xFF == ord('q'):
+                break
 
     input_feeder.close()
-    cv2.destroyAllWindows()
+    if "True" in args.visualize:
+        cv2.destroyAllWindows()
 
 def main():
     args = build_argparser().parse_args()

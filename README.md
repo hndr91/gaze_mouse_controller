@@ -6,7 +6,83 @@ This project demonstrate the ability to use Intel OpenVino IR model to control c
 The input images comes from video, image, or webcam. This project also ultized PyAutoGui to control the pointer as the inference result. You also need Intel OpenVino R3.1 or later.
 
 ## Project Set Up and Installation
-*TODO:* Explain the setup procedures to run your project. For instance, this can include your project directory structure, the models you need to download and where to place them etc. Also include details about how to install the dependencies your project requires.
+
+### Directory Structure
+```
+.
+├── bin
+│   └── demo.mp4
+├── models
+│   ├── face-detection-adas-binary-0001
+│   │   └── FP32-INT1
+│   │       ├── face-detection-adas-binary-0001.bin
+│   │       └── face-detection-adas-binary-0001.xml
+│   ├── gaze-estimation-adas-0002
+│   │   ├── FP16
+│   │   │   ├── gaze-estimation-adas-0002.bin
+│   │   │   └── gaze-estimation-adas-0002.xml
+│   │   ├── FP32
+│   │   │   ├── gaze-estimation-adas-0002.bin
+│   │   │   └── gaze-estimation-adas-0002.xml
+│   │   └── INT8
+│   │       ├── gaze-estimation-adas-0002.bin
+│   │       └── gaze-estimation-adas-0002.xml
+│   ├── head-pose-estimation-adas-0001
+│   │   ├── FP16
+│   │   │   ├── head-pose-estimation-adas-0001.bin
+│   │   │   └── head-pose-estimation-adas-0001.xml
+│   │   ├── FP32
+│   │   │   ├── head-pose-estimation-adas-0001.bin
+│   │   │   └── head-pose-estimation-adas-0001.xml
+│   │   └── FP32-INT8
+│   │       ├── head-pose-estimation-adas-0001.bin
+│   │       └── head-pose-estimation-adas-0001.xml
+│   └── landmarks-regression-retail-0009
+│       ├── FP16
+│       │   ├── landmarks-regression-retail-0009.bin
+│       │   └── landmarks-regression-retail-0009.xml
+│       ├── FP32
+│       │   ├── landmarks-regression-retail-0009.bin
+│       │   └── landmarks-regression-retail-0009.xml
+│       └── FP32-INT8
+│           ├── landmarks-regression-retail-0009.bin
+│           └── landmarks-regression-retail-0009.xml
+├── README.md
+├── requirements.txt
+└── src
+    ├── constant.py
+    ├── face_detection.py
+    ├── facial_landmark_detection.py
+    ├── gaze_estimation.py
+    ├── head_pose_estimation.py
+    ├── input_feeder.py
+    ├── main.py
+    ├── mouse_controller.py
+```
+
+`bin`       : Directory that contain video that can be used as a input.
+
+`models`    : Directory for IR models. You can save your IR model in this directory grouped by precision.
+
+`requirements.txt` : Project dependencies list.
+
+`src`       : Main project directory.
+
+`constant.py` : Store constant variables. The constant variable is path to IR models.
+
+`face_detection.py` : Face dectection model handler.
+
+`facial_landmark_dectetion.py` : Facial landmark detection model handler.
+
+`gaze_estimation.py` : Gaze estimation model handler.
+
+`head_pose_estiomation.py` : Head pose estimation model handler.
+
+`input_feeder.py` : Input handler. It can be video, image, or webcam.
+
+`main.py`   : Main class of the project.
+
+`mouse_controller.py` : Handling mouse controller by taking gaze coordinate. It utilized PyAutoGUI library.
 
 ### Supported Hardwares
 To able run the application, your system should meet at least one of the following hardwares.
